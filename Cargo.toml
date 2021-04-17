@@ -1,10 +1,23 @@
 [package]
-name = "maxmind"
-version = "0.1.0"
-authors = ["Matthew Phillips <matthew.phillips@driveclutch.com>"]
+name = "maxmind_geo_ip2"
+version = "0.1.7"
+authors = ["Matthew Phillips <matthew.t.phillips@protonmail.com>"]
+description = "a REST API client for the MaxMind GeoIP2 API"
+documentation = "https://github.com/mtphil/maxmind_geo_ip2"
+readme = "README.md"
+homepage = "https://github.com/mtphil/maxmind_geo_ip2"
+repository = "https://github.com/mtphil/maxmind_geo_ip2"
+license = "MIT"
 edition = "2018"
+keywords = ["maxmind", "geo-ip", "geoip"]
+categories = ["web-programming::http-client"]
+exclude = [
+    ".idea/*"
+]
 
 [dependencies]
-reqwest = {version = "0.11.3", features = ["blocking", "json"]}
+reqwest = { version = "0.11.3", features = ["rustls", "json"] }
 serde = { version = "1.0.125", features = ["derive"] }
-tokio = { version = "1.5.0", features = ["macros"] }
+
+[badges]
+maintenance = {status = "experimental"}
