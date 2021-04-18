@@ -1,6 +1,8 @@
 # maxmind_geo_ip2 API client
 
-Still very much a work in progress - this is my first Rust crate, so any suggestion about improvements, etc are very welcome.
+WARNING: This is still very much a ***work in progress*** - this should probably/definitely NOT BE USED IN PRODUCTION.
+
+This is my first Rust crate, so any suggestion about improvements, etc are very welcome.
 
 Todos: 
 - error handling
