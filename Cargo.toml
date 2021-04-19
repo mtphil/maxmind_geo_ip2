@@ -1,6 +1,6 @@
 [package]
 name = "maxmind_geo_ip2"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Matthew Phillips <matthew.t.phillips@protonmail.com>"]
 description = "a REST API client for the MaxMind GeoIP2 API"
 documentation = "https://github.com/mtphil/maxmind_geo_ip2"
@@ -13,7 +13,8 @@ keywords = ["maxmind", "geo-ip", "geoip"]
 categories = ["web-programming::http-client"]
 exclude = [
     ".idea/*",
-    "src/bin.rs"
+    "src/bin.rs",
+    "Cargo2.toml"
 ]
 
 [dependencies]

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
-// TODO - make three different response objects - eliminate unnecessary Option<>s
+// divide into mods
 pub struct ApiClient {
     user_id: String,
     license_key: String,
@@ -19,12 +19,30 @@ impl ApiClient {
         }
     }
 
-    async fn make_request(
+    pub async fn get_country(
         &self,
-        prefix: String,
         ip_address: &str,
-    ) -> Result<Response, Box<dyn std::error::Error>> {
-        let url = format!("{}{}", prefix, ip_address);
+    ) -> Result<CountryResponse, Box<dyn std::error::Error>> {
+
+        let url = format!("https://geoip.maxmind.com/geoip/v2.1/country/{}", ip_address);
+
+        let resp = self
+            .client
+            .get(url)
+            .basic_auth(&self.user_id, Some(&self.license_key))
+            .send()
+            .await?;
+
+        println!("raw response{:?}", resp);
+
+        let json_resp = resp
+            .json::<CountryResponse>()
+            .await?;
+        Ok(json_resp)
+    }
+
+    pub async fn get_city(&self, ip_address: &str) -> Result<CityResponse, Box<dyn std::error::Error>> {
+        let url = format!("https://geoip.maxmind.com/geoip/v2.1/city/{}", ip_address);
 
         let resp = self
             .client
@@ -32,39 +50,27 @@ impl ApiClient {
             .basic_auth(&self.user_id, Some(&self.license_key))
             .send()
             .await?
-            .json::<Response>()
+            .json::<CityResponse>()
             .await?;
+
         Ok(resp)
-    }
-
-    pub async fn get_country(
-        &self,
-        ip_address: &str,
-    ) -> Result<Response, Box<dyn std::error::Error>> {
-        self.make_request(
-            String::from("https://geoip.maxmind.com/geoip/v2.1/country/"),
-            ip_address,
-        )
-        .await
-    }
-
-    pub async fn get_city(&self, ip_address: &str) -> Result<Response, Box<dyn std::error::Error>> {
-        self.make_request(
-            String::from("https://geoip.maxmind.com/geoip/v2.1/city/"),
-            ip_address,
-        )
-        .await
     }
 
     pub async fn get_insights(
         &self,
         ip_address: &str,
-    ) -> Result<Response, Box<dyn std::error::Error>> {
-        self.make_request(
-            String::from("https://geoip.maxmind.com/geoip/v2.1/insights/"),
-            ip_address,
-        )
-        .await
+    ) -> Result<InsightsResponse, Box<dyn std::error::Error>> {
+        let url = format!("https://geoip.maxmind.com/geoip/v2.1/insights/{}", ip_address);
+
+        let resp = self
+            .client
+            .get(url)
+            .basic_auth(&self.user_id, Some(&self.license_key))
+            .send()
+            .await?
+            .json::<InsightsResponse>()
+            .await?;
+        Ok(resp)
     }
 }
 
@@ -78,37 +84,37 @@ fn option_to_string<T: fmt::Debug>(option: &Option<T>) -> String {
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct City {
     pub confidence: Option<i64>,
-    pub geoname_id: Option<i64>,
-    pub names: Option<HashMap<String, String>>,
+    pub geoname_id: i64,
+    pub names: HashMap<String, String>,
 }
 
 impl fmt::Display for City {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "confidence: {}, geoname_id: {}, names: {}",
+            "confidence: {}, geoname_id: {}, names: {:?}",
             option_to_string(&self.confidence),
-            option_to_string(&self.geoname_id),
-            option_to_string(&self.names)
+            &self.geoname_id,
+            &self.names
         )
     }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct Continent {
-    pub code: Option<String>,
-    pub geoname_id: Option<i64>,
-    pub names: Option<HashMap<String, String>>,
+    pub code: String,
+    pub geoname_id: i64,
+    pub names: HashMap<String, String>,
 }
 
 impl fmt::Display for Continent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "code: {}, geoname_id: {}, names: {}",
-            option_to_string(&self.code),
-            option_to_string(&self.geoname_id),
-            option_to_string(&self.names)
+            "code: {}, geoname_id: {}, names: {:?}",
+            &self.code,
+            &self.geoname_id,
+            &self.names
         )
     }
 }
@@ -116,35 +122,35 @@ impl fmt::Display for Continent {
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct Country {
     pub confidence: Option<i64>,
-    pub geoname_id: Option<i64>,
+    pub geoname_id: i64,
     pub is_in_european_union: Option<bool>,
-    pub iso_code: Option<String>,
-    pub names: Option<HashMap<String, String>>,
+    pub iso_code: String,
+    pub names: HashMap<String, String>,
 }
 
 impl fmt::Display for Country {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "confidence: {}, geoname_id: {}, is_in_european_union: {}, iso_code: {}, names: {}",
+            "confidence: {}, geoname_id: {}, is_in_european_union: {}, iso_code: {}, names: {:?}",
             option_to_string(&self.confidence),
-            option_to_string(&self.geoname_id),
+            &self.geoname_id,
             option_to_string(&self.is_in_european_union),
-            option_to_string(&self.iso_code),
-            option_to_string(&self.names)
+            &self.iso_code,
+            &self.names
         )
     }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct Location {
-    pub accuracy_radius: Option<i64>,
+    pub accuracy_radius: i64,
     pub average_income: Option<i64>,
-    pub latitude: Option<f64>,
-    pub longitude: Option<f64>,
-    pub metro_code: Option<i64>,
+    pub latitude: f64,
+    pub longitude: f64,
+    pub metro_code: i64,
     pub population_density: Option<i64>,
-    pub time_zone: Option<String>,
+    pub time_zone: String,
 }
 
 impl fmt::Display for Location {
@@ -152,20 +158,20 @@ impl fmt::Display for Location {
         write!(
             f,
             "accuracy_radius: {}, average_income: {}, latitude: {}, longitude: {}, metro_code: {}, population_density: {}, time_zone: {}",
-            option_to_string(&self.accuracy_radius),
+            &self.accuracy_radius,
             option_to_string(&self.average_income),
-            option_to_string(&self.latitude),
-            option_to_string(&self.longitude),
-            option_to_string(&self.metro_code),
+            &self.latitude,
+            &self.longitude,
+            &self.metro_code,
             option_to_string(&self.population_density),
-            option_to_string(&self.time_zone)
+            &self.time_zone
         )
     }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct Postal {
-    pub code: Option<String>,
+    pub code: String,
     pub confidence: Option<i64>,
 }
 
@@ -174,7 +180,7 @@ impl fmt::Display for Postal {
         write!(
             f,
             "code: {}, confidence: {}",
-            option_to_string(&self.code),
+            &self.code,
             option_to_string(&self.confidence)
         )
     }
@@ -182,42 +188,44 @@ impl fmt::Display for Postal {
 
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct RegisteredCountry {
-    pub geoname_id: Option<i64>,
+    pub geoname_id: i64,
     pub is_in_european_union: Option<bool>,
-    pub iso_code: Option<String>,
-    pub names: Option<HashMap<String, String>>,
+    pub iso_code: String,
+    pub names: HashMap<String, String>,
 }
 
 impl fmt::Display for RegisteredCountry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "geoname_id: {}, is_in_european_union: {}, iso_code: {}, names: {}",
-            option_to_string(&self.geoname_id),
+            "geoname_id: {}, is_in_european_union: {}, iso_code: {}, names: {:?}",
+            &self.geoname_id,
             option_to_string(&self.is_in_european_union),
-            option_to_string(&self.iso_code),
-            option_to_string(&self.names)
+            &self.iso_code,
+            &self.names
         )
     }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct RepresentedCountry {
-    pub geoname_id: Option<i64>,
-    pub iso_code: Option<String>,
-    pub names: Option<HashMap<String, String>>,
-    pub r#type: Option<String>,
+    pub geoname_id: i64,
+    pub is_in_european_union: Option<bool>,
+    pub iso_code: String,
+    pub names: HashMap<String, String>,
+    pub r#type: String,
 }
 
 impl fmt::Display for RepresentedCountry {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "geoname_id: {}, iso_code: {}, names: {}, type: {}",
-            option_to_string(&self.geoname_id),
-            option_to_string(&self.iso_code),
-            option_to_string(&self.names),
-            option_to_string(&self.r#type)
+            "geoname_id: {}, is_in_european_union: {}, iso_code: {}, names: {:?}, type: {}",
+            &self.geoname_id,
+            option_to_string(&self.is_in_european_union),
+            &self.iso_code,
+            &self.names,
+            &self.r#type
         )
     }
 }
@@ -225,20 +233,20 @@ impl fmt::Display for RepresentedCountry {
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct Subdivision {
     pub confidence: Option<i64>,
-    pub geoname_id: Option<i64>,
-    pub iso_code: Option<String>,
-    pub names: Option<HashMap<String, String>>,
+    pub geoname_id: i64,
+    pub iso_code: String,
+    pub names: HashMap<String, String>,
 }
 
 impl fmt::Display for Subdivision {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "confidence: {}, geoname_id: {}, iso_code: {}, names: {}",
+            "confidence: {}, geoname_id: {}, iso_code: {}, names: {:?}",
             option_to_string(&self.confidence),
-            option_to_string(&self.geoname_id),
-            option_to_string(&self.iso_code),
-            option_to_string(&self.names)
+            &self.geoname_id,
+            &self.iso_code,
+            &self.names
         )
     }
 }
@@ -257,8 +265,8 @@ pub struct Traits {
     pub is_satellite_provider: Option<bool>,
     pub is_tor_exit_node: Option<bool>,
     pub isp: Option<String>,
-    pub network: Option<String>,
-    pub ip_address: Option<String>,
+    pub network: String,
+    pub ip_address: String,
     pub organization: Option<String>,
     pub static_ip_score: Option<f64>,
     pub user_count: Option<i64>,
@@ -282,8 +290,8 @@ impl fmt::Display for Traits {
             option_to_string(&self.is_satellite_provider),
             option_to_string(&self.is_tor_exit_node),
             option_to_string(&self.isp),
-            option_to_string(&self.network),
-            option_to_string(&self.ip_address),
+            &self.network,
+            &self.ip_address,
             option_to_string(&self.organization),
             option_to_string(&self.static_ip_score),
             option_to_string(&self.user_count),
@@ -294,7 +302,7 @@ impl fmt::Display for Traits {
 
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
 pub struct MaxMind {
-    pub queries_remaining: Option<i64>,
+    pub queries_remaining: i64,
 }
 
 impl fmt::Display for MaxMind {
@@ -302,40 +310,98 @@ impl fmt::Display for MaxMind {
         write!(
             f,
             "queries_remaining: {}",
-            option_to_string(&self.queries_remaining)
+            &self.queries_remaining
         )
     }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
-pub struct Response {
-    pub city: Option<City>,
-    pub continent: Option<Continent>,
-    pub country: Option<Country>,
-    pub location: Option<Location>,
-    pub postal: Option<Postal>,
-    pub registered_country: Option<RegisteredCountry>,
+pub struct CountryResponse {
+    pub continent: Continent,
+    pub maxmind: MaxMind,
+    pub traits: Traits,
     pub represented_country: Option<RepresentedCountry>,
-    pub subdivisions: Option<Vec<Subdivision>>,
-    pub traits: Option<Traits>,
-    pub maxmind: Option<MaxMind>,
+    pub registered_country: RegisteredCountry,
+    pub country: Country
 }
 
-impl fmt::Display for Response {
+impl fmt::Display for CountryResponse {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "city: {}, continent: {}, country: {}, location: {}, postal: {}, registered_country: {}, represented_country: {}, subdivisions: {}, traits: {}, maxmind: {}",
-            option_to_string(&self.city),
-            option_to_string(&self.continent),
-            option_to_string(&self.country),
-            option_to_string(&self.location),
-            option_to_string(&self.postal),
-            option_to_string(&self.registered_country),
+            "continent: {}, country: {}, registered_country: {}, represented_country: {}, traits: {}, maxmind: {}",
+            &self.continent,
+            &self.country,
+            &self.registered_country,
             option_to_string(&self.represented_country),
-            option_to_string(&self.subdivisions),
-            option_to_string(&self.traits),
-            option_to_string(&self.maxmind),
+            &self.traits,
+            &self.maxmind
+        )
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
+pub struct CityResponse {
+    pub city: City,
+    pub continent: Continent,
+    pub country: Country,
+    pub location: Location,
+    pub postal: Postal,
+    pub represented_country: Option<RepresentedCountry>,
+    pub registered_country: RegisteredCountry,
+    pub subdivisions: Vec<Subdivision>,
+    pub traits: Traits,
+    pub maxmind: MaxMind,
+}
+
+impl fmt::Display for CityResponse {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "city: {}, continent: {}, country: {}, location: {}, postal: {}, registered_country: {}, represented_country: {}, subdivisions: {:?}, traits: {}, maxmind: {}",
+            &self.city,
+            &self.continent,
+            &self.country,
+            &self.location,
+            &self.postal,
+            &self.registered_country,
+            option_to_string(&self.represented_country),
+            &self.subdivisions,
+            &self.traits,
+            &self.maxmind
+        )
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, fmt::Debug)]
+pub struct InsightsResponse {
+    pub city: City,
+    pub continent: Continent,
+    pub country: Country,
+    pub location: Location,
+    pub postal: Postal,
+    pub represented_country: Option<RepresentedCountry>,
+    pub registered_country: RegisteredCountry,
+    pub subdivisions: Vec<Subdivision>,
+    pub traits: Traits,
+    pub maxmind: MaxMind,
+}
+
+impl fmt::Display for InsightsResponse {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "city: {}, continent: {}, country: {}, location: {}, postal: {}, registered_country: {}, represented_country: {}, subdivisions: {:?}, traits: {}, maxmind: {}",
+            &self.city,
+            &self.continent,
+            &self.country,
+            &self.location,
+            &self.postal,
+            &self.registered_country,
+            option_to_string(&self.represented_country),
+            &self.subdivisions,
+            &self.traits,
+            &self.maxmind
         )
     }
 }
