@@ -23,8 +23,10 @@ impl ApiClient {
         &self,
         ip_address: &str,
     ) -> Result<CountryResponse, Box<dyn std::error::Error>> {
-
-        let url = format!("https://geoip.maxmind.com/geoip/v2.1/country/{}", ip_address);
+        let url = format!(
+            "https://geoip.maxmind.com/geoip/v2.1/country/{}",
+            ip_address
+        );
 
         let resp = self
             .client
@@ -35,13 +37,14 @@ impl ApiClient {
 
         println!("raw response{:?}", resp);
 
-        let json_resp = resp
-            .json::<CountryResponse>()
-            .await?;
+        let json_resp = resp.json::<CountryResponse>().await?;
         Ok(json_resp)
     }
 
-    pub async fn get_city(&self, ip_address: &str) -> Result<CityResponse, Box<dyn std::error::Error>> {
+    pub async fn get_city(
+        &self,
+        ip_address: &str,
+    ) -> Result<CityResponse, Box<dyn std::error::Error>> {
         let url = format!("https://geoip.maxmind.com/geoip/v2.1/city/{}", ip_address);
 
         let resp = self
@@ -60,7 +63,10 @@ impl ApiClient {
         &self,
         ip_address: &str,
     ) -> Result<InsightsResponse, Box<dyn std::error::Error>> {
-        let url = format!("https://geoip.maxmind.com/geoip/v2.1/insights/{}", ip_address);
+        let url = format!(
+            "https://geoip.maxmind.com/geoip/v2.1/insights/{}",
+            ip_address
+        );
 
         let resp = self
             .client
@@ -112,9 +118,7 @@ impl fmt::Display for Continent {
         write!(
             f,
             "code: {}, geoname_id: {}, names: {:?}",
-            &self.code,
-            &self.geoname_id,
-            &self.names
+            &self.code, &self.geoname_id, &self.names
         )
     }
 }
@@ -307,11 +311,7 @@ pub struct MaxMind {
 
 impl fmt::Display for MaxMind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "queries_remaining: {}",
-            &self.queries_remaining
-        )
+        write!(f, "queries_remaining: {}", &self.queries_remaining)
     }
 }
 
@@ -322,7 +322,7 @@ pub struct CountryResponse {
     pub traits: Traits,
     pub represented_country: Option<RepresentedCountry>,
     pub registered_country: RegisteredCountry,
-    pub country: Country
+    pub country: Country,
 }
 
 impl fmt::Display for CountryResponse {
