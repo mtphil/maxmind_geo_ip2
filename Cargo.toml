@@ -12,7 +12,8 @@ edition = "2018"
 keywords = ["maxmind", "geo-ip", "geoip"]
 categories = ["web-programming::http-client"]
 exclude = [
-    ".idea/*"
+    ".idea/*",
+    "src/bin.rs"
 ]
 
 [dependencies]
