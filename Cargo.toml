@@ -1,6 +1,6 @@
 [package]
 name = "maxmind_geo_ip2"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Matthew Phillips <matthew.t.phillips@protonmail.com>"]
 description = "a REST API client for the MaxMind GeoIP2 API"
 documentation = "https://github.com/mtphil/maxmind_geo_ip2"

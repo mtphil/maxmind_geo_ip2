@@ -93,9 +93,10 @@ pub struct CityResponse {
 API endpoint:
 ````
 https://geoip.maxmind.com/geoip/v2.1/insights/{ip_address}
-```
+````
 
 Method signature:
+
 ````rust
 get_insights(ip_address: &str) -> Result<InsightsResponse, Box<dyn std::error::Error>>
 ````
