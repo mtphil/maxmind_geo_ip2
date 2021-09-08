@@ -3,7 +3,7 @@
 pipeline {
 
     agent {
-        docker {
+        kubernetes {
             image 'node'
             args '-u root'
         }
