@@ -18,8 +18,9 @@ exclude = [
 ]
 
 [dependencies]
-reqwest = { version = "0.10", features = ["rustls", "json"] }
+reqwest = { version = "0.11.10", features = ["rustls", "json"] }
 serde = { version = "1.0.125", features = ["derive"] }
+reqwest-wasm-ext = "0.1.0"
 
 [badges]
 maintenance = {status = "experimental"}

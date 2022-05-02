@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 use std::fmt;
+use reqwest_wasm_ext::ReqwestExt;
+use reqwest::Client as HttpClient;
+
 // divide into mods
 pub struct ApiClient {
     user_id: String,
@@ -9,7 +12,7 @@ pub struct ApiClient {
 
 impl ApiClient {
     pub fn new_client(user_id: &str, license_key: &str) -> ApiClient {
-        let client = reqwest::Client::new();
+        let client = HttpClient::new();
         let user_id = user_id.to_string();
         let license_key = license_key.to_string();
         ApiClient {
@@ -31,7 +34,7 @@ impl ApiClient {
         let resp = self
             .client
             .get(&url)
-            .basic_auth(&self.user_id, Some(&self.license_key))
+            .basic_auth_ext(&self.user_id, Some(&self.license_key))
             .send()
             .await?;
 
@@ -50,7 +53,7 @@ impl ApiClient {
         let resp = self
             .client
             .get(&url)
-            .basic_auth(&self.user_id, Some(&self.license_key))
+            .basic_auth_ext(&self.user_id, Some(&self.license_key))
             .send()
             .await?
             .json::<CityResponse>()
@@ -71,7 +74,7 @@ impl ApiClient {
         let resp = self
             .client
             .get(&url)
-            .basic_auth(&self.user_id, Some(&self.license_key))
+            .basic_auth_ext(&self.user_id, Some(&self.license_key))
             .send()
             .await?
             .json::<InsightsResponse>()
