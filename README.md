@@ -29,7 +29,7 @@ use maxmind_geo_ip2::ApiClient;
 Initialize the client with Maxmind API credentials: 
 
 ````
-let maxmind_client = ApiClient.new_client(String::from("user_id_here"), String::from("license_key_here"));
+let maxmind_client = ApiClient::new_client(String::from("user_id_here"), String::from("license_key_here"));
 ````
 
 ## Methods

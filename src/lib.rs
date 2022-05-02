@@ -30,7 +30,7 @@ impl ApiClient {
 
         let resp = self
             .client
-            .get(url)
+            .get(&url)
             .basic_auth(&self.user_id, Some(&self.license_key))
             .send()
             .await?;
@@ -49,7 +49,7 @@ impl ApiClient {
 
         let resp = self
             .client
-            .get(url)
+            .get(&url)
             .basic_auth(&self.user_id, Some(&self.license_key))
             .send()
             .await?
@@ -70,7 +70,7 @@ impl ApiClient {
 
         let resp = self
             .client
-            .get(url)
+            .get(&url)
             .basic_auth(&self.user_id, Some(&self.license_key))
             .send()
             .await?
